@@ -38,7 +38,7 @@ services:
     ports:
       - '30005:30005'
     network_mode: bridge
-    command: '--quiet --net --lat 32.7939 --lon -96.8064'
+    command: '--quiet --net --lat 32.79391 --lon -96.80642'
     restart: unless-stopped
 
   piaware:
@@ -78,5 +78,5 @@ services:
       - '30205:30205'
     links:
       - dump1090
-    command: '--input-type dump1090 --input-connect dump1090:30005 --lat 32.7939 --lon -96.8064 --alt 191 --user bradsjm --server feed.adsbexchange.com:31090 --no-udp --results beast,listen,30205'
+    command: '--input-type dump1090 --input-connect dump1090:30005 --lat 32.79391 --lon -96.80642 --alt 191 --user bradsjm --server feed.adsbexchange.com:31090 --no-udp --results beast,listen,30205'
     restart: unless-stopped
