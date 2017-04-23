@@ -1,0 +1,82 @@
+version: '3'
+
+services:
+  gps:
+    image: bradsjm/rpi-gpsd
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-gpsd
+    container_name: gps
+    devices:
+      - '/dev/ttyAMA0:/dev/ttyAMA0'
+    ports:
+      - '2947:2947'
+    command: '-D2 /dev/ttyAMA0'
+    network_mode: bridge
+    restart: unless-stopped
+
+  ntp:
+    image: bradsjm/rpi-chrony
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-chrony
+    container_name: ntp
+    depends_on:
+      - gps
+    devices:
+      - '/dev/pps0:/dev/pps0'
+    ports:
+      - '123:123/udp'
+    ipc: 'container:gps'
+    cap_add:
+      - SYS_TIME
+    network_mode: bridge
+    restart: unless-stopped
+
+  dump1090:
+    image: bradsjm/rpi-dump1090
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-dump1090
+    container_name: dump1090
+    devices:
+      - '/dev/usb:/dev/usb'
+    ports:
+      - '30005:30005'
+    network_mode: bridge
+    command: '--quiet --net --lat 32.7939 --lon -96.8064'
+    restart: unless-stopped
+
+  piaware:
+    image: bradsjm/rpi-piaware
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-piaware
+    mac_address: 02:42:ac:12:00:05
+    container_name: piaware
+    ports:
+      - '30105:30105'
+    network_mode: bridge
+    environment:
+      - USER=xxxxxxx
+      - PASS=xxxxxxx
+      - FEEDID=xxxxx
+      - GPSD=gps
+    links:
+      - dump1090
+      - gps
+    restart: unless-stopped
+
+  exchange-adsb:
+    image: bradsjm/rpi-socat
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-socat
+    container_name: exchange-adsb
+    network_mode: bridge
+    links:
+      - dump1090
+    command: '-u TCP:dump1090:30005 TCP:feed.adsbexchange.com:30005'
+    restart: unless-stopped
+
+  exchange-mlat:
+    image: bradsjm/rpi-mlat-client
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-mlat-client
+    container_name: exchange-mlat
+    network_mode: bridge
+    ports:
+      - '30205:30205'
+    links:
+      - dump1090
+    command: '--input-type dump1090 --input-connect dump1090:30005 --lat 32.7939 --lon -96.8064 --alt 191 --user bradsjm --server feed.adsbexchange.com:31090 --no-udp --results beast,listen,30205'
+    restart: unless-stopped
