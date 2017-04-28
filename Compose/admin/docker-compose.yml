@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  crashplan:
+    image: 'gfjardim/crashplan:latest'
+    container_name: 'crashplan'
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - 'crashplan-config:/config'
+      - '/mnt:/backup'
+    environment:
+      - 'TZ=America/Chicago'
+      - 'USER_ID=0'
+      - 'GROUP_ID=0'
+
+  weewx:
+    image: 'bradsjm/weewx:3.6.2'
+    container_name: 'weewx'
+    network_mode: bridge
+    restart: unless-stopped
+    environment:
+      - 'TZ=America/Chicago'
+
+  hs3:
+    image: 'bradsjm/homeseer3:latest'
+    container_name: 'hs3'
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - 'hs3-config:/data'
+
+  vrs:
+    image: 'bradsjm/virtualradarserver:preview'
+    container_name: 'vrs'
+    network_mode: bridge
+    restart: unless-stopped
+    volumes:
+      - 'vrs-config:/config'

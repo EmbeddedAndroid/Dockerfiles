@@ -1,0 +1,102 @@
+version: '3'
+
+services:
+  plex:
+    image: plexinc/pms-docker:plexpass
+    container_name: plex
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - 'plex-config:/config'
+      - 'plex-transcode:/transcode'
+      - '/mnt/media:/media'
+    environment:
+      - 'TZ=America/Chicago'
+      - 'PLEX_UID=1000'
+      - 'PLEX_GID=1000'
+      - 'VERSION=latest'
+
+  plexpy:
+    image: 'linuxserver/plexpy:latest'
+    container_name: plexpy
+    network_mode: bridge
+    restart: unless-stopped
+    volumes:
+      - 'plexpy-config:/config'
+      - 'plex-config:/plex:ro'
+    environment:
+      - 'TZ=America/Chicago'
+      - 'PLEX_UID=1000'
+      - 'PLEX_GID=1000'
+    ports:
+      - '8181:8181/tcp'
+
+  nzbget:
+    image: 'linuxserver/nzbget:latest'
+    container_name: 'nzbget'
+    network_mode: bridge
+    restart: unless-stopped
+    volumes:
+      - 'nzbget-config:/config'
+      - 'downloads:/downloads'
+    environment:
+      - 'TZ=America/Chicago'
+      - 'PLEX_UID=1000'
+      - 'PLEX_GID=1000'
+    ports:
+      - '6789:6789/tcp'
+
+  sonarr:
+    image: 'linuxserver/sonarr:latest'
+    container_name: 'sonarr'
+    network_mode: bridge
+    restart: unless-stopped
+    volumes:
+      - '/dev/rtc:/dev/rtc:ro'
+      - 'sonarr-config:/config'
+      - 'downloads:/downloads'
+      - '/mnt/tv:/tv'
+    environment:
+      - 'TZ=America/Chicago'
+      - 'PLEX_UID=1000'
+      - 'PLEX_GID=1000'
+    ports:
+      - '8989:8989/tcp'
+
+  radarr:
+    image: 'linuxserver/radarr:latest'
+    container_name: 'radarr'
+    network_mode: bridge
+    restart: unless-stopped
+    volumes:
+      - '/dev/rtc:/dev/rtc:ro'
+      - 'radarr-config:/config'
+      - 'downloads:/downloads'
+      - '/mnt/movies:/movies'
+    environment:
+      - 'TZ=America/Chicago'
+      - 'PLEX_UID=1000'
+      - 'PLEX_GID=1000'
+    ports:
+      - '7878:7878/tcp'
+
+  transmission:
+    image: 'haugene/transmission-openvpn:latest'
+    container_name: 'transmission'
+    network_mode: bridge
+    restart: unless-stopped
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - 'downloads:/data'
+    environment:
+      - 'OPENVPN_PROVIDER=PIA'
+      - 'OPENVPN_CONFIG=CA North York'
+      - 'OPENVPN_USERNAME='
+      - 'OPENVPN_PASSWORD='
+      - 'LOCAL_NETWORK=172.16.1.0/24'
+      - 'TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=true'
+      - 'TRANSMISSION_RATIO_LIMIT_ENABLED=true'
+      - 'PUID=1000'
+      - 'PGID=1000'
+    ports:
+      - '9091:9091/tcp'
