@@ -7,14 +7,17 @@ services:
     network_mode: host
     restart: unless-stopped
     volumes:
-      - 'plex-config:/config'
-      - 'plex-transcode:/transcode'
-      - '/mnt/media:/media'
+      - '/mnt/volumes/plex:/config'
+      - '/mnt/volumes/transcode:/transcode'
+      - '/mnt/data/Media:/media'
     environment:
       - 'TZ=America/Chicago'
       - 'PLEX_UID=1000'
       - 'PLEX_GID=1000'
       - 'VERSION=latest'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   plexpy:
     image: 'linuxserver/plexpy:latest'
@@ -22,14 +25,17 @@ services:
     network_mode: bridge
     restart: unless-stopped
     volumes:
-      - 'plexpy-config:/config'
-      - 'plex-config:/plex:ro'
+      - '/mnt/volumes/plexpy:/config'
+      - '/mnt/volumes/plex:/plex:ro'
     environment:
       - 'TZ=America/Chicago'
       - 'PLEX_UID=1000'
       - 'PLEX_GID=1000'
     ports:
       - '8181:8181/tcp'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   nzbget:
     image: 'linuxserver/nzbget:latest'
@@ -37,14 +43,17 @@ services:
     network_mode: bridge
     restart: unless-stopped
     volumes:
-      - 'nzbget-config:/config'
-      - 'downloads:/downloads'
+      - '/mnt/volumes/nzbget:/config'
+      - '/mnt/volumes/downloads:/downloads'
     environment:
       - 'TZ=America/Chicago'
       - 'PLEX_UID=1000'
       - 'PLEX_GID=1000'
     ports:
       - '6789:6789/tcp'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   sonarr:
     image: 'linuxserver/sonarr:latest'
@@ -53,15 +62,18 @@ services:
     restart: unless-stopped
     volumes:
       - '/dev/rtc:/dev/rtc:ro'
-      - 'sonarr-config:/config'
-      - 'downloads:/downloads'
-      - '/mnt/tv:/tv'
+      - '/mnt/volumes/sonarr:/config'
+      - '/mnt/volumes/downloads:/downloads'
+      - '/mnt/data/Media/Series:/tv'
     environment:
       - 'TZ=America/Chicago'
       - 'PLEX_UID=1000'
       - 'PLEX_GID=1000'
     ports:
       - '8989:8989/tcp'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   radarr:
     image: 'linuxserver/radarr:latest'
@@ -70,15 +82,18 @@ services:
     restart: unless-stopped
     volumes:
       - '/dev/rtc:/dev/rtc:ro'
-      - 'radarr-config:/config'
-      - 'downloads:/downloads'
-      - '/mnt/movies:/movies'
+      - '/mnt/volumes/radarr:/config'
+      - '/mnt/volumes/downloads:/downloads'
+      - '/mnt/data/Media/Movies:/movies'
     environment:
       - 'TZ=America/Chicago'
       - 'PLEX_UID=1000'
       - 'PLEX_GID=1000'
     ports:
       - '7878:7878/tcp'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   transmission:
     image: 'haugene/transmission-openvpn:latest'
@@ -87,7 +102,7 @@ services:
     restart: unless-stopped
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
-      - 'downloads:/data'
+      - '/mnt/volumes/downloads:/data'
     environment:
       - 'OPENVPN_PROVIDER=PIA'
       - 'OPENVPN_CONFIG=CA North York'
@@ -100,3 +115,6 @@ services:
       - 'PGID=1000'
     ports:
       - '9091:9091/tcp'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]

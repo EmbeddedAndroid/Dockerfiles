@@ -34,7 +34,7 @@ services:
     build: https://github.com/bradsjm/Dockerfiles.git#:rpi-dump1090
     container_name: dump1090
     devices:
-      - '/dev/usb:/dev/usb'
+      - '/dev/bus/usb:/dev/bus/usb'
     ports:
       - '30005:30005'
     network_mode: bridge

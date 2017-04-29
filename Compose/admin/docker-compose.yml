@@ -13,6 +13,9 @@ services:
       - 'TZ=America/Chicago'
       - 'USER_ID=0'
       - 'GROUP_ID=0'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   weewx:
     image: 'bradsjm/weewx:3.6.2'
@@ -21,6 +24,9 @@ services:
     restart: unless-stopped
     environment:
       - 'TZ=America/Chicago'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   hs3:
     image: 'bradsjm/homeseer3:latest'
@@ -29,6 +35,9 @@ services:
     restart: unless-stopped
     volumes:
       - 'hs3-config:/data'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
 
   vrs:
     image: 'bradsjm/virtualradarserver:preview'
@@ -37,3 +46,6 @@ services:
     restart: unless-stopped
     volumes:
       - 'vrs-config:/config'
+    deploy:
+      placement:
+        constraints: [node.platform.os == linux]
