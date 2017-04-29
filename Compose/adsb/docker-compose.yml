@@ -30,13 +30,14 @@ services:
     restart: unless-stopped
 
   dump1090:
-    image: bradsjm/rpi-dump1090
-    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-dump1090
+    image: bradsjm/rpi-dump1090-fa
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-dump1090-fa
     container_name: dump1090
     devices:
       - '/dev/bus/usb:/dev/bus/usb'
     ports:
-      - '30005:30005'
+      - '30001-30005:30001-30005'
+      - '30104:30104'
     network_mode: bridge
     command: '--quiet --net --lat 32.79391 --lon -96.80642'
     restart: unless-stopped
@@ -67,6 +68,7 @@ services:
     links:
       - dump1090
     command: '-u TCP:dump1090:30005 TCP:feed.adsbexchange.com:30005'
+    read_only: true
     restart: unless-stopped
 
   exchange-mlat:
