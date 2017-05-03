@@ -1,6 +1,22 @@
 version: '3'
 
+volumes:
+  grafana:
+    driver: vsphere
+    driver_opts:
+      size: 1Gb
+
 services:
+  grafana:
+    image: 'grafana/grafana:latest'
+    container_name: 'grafana'
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - 'grafana:/var/lib/grafana'
+    environment:
+      - 'GF_SECURITY_ADMIN_PASSWORD=admin'
+
   crashplan:
     image: 'gfjardim/crashplan:latest'
     container_name: 'crashplan'
@@ -13,9 +29,6 @@ services:
       - 'TZ=America/Chicago'
       - 'USER_ID=0'
       - 'GROUP_ID=0'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
 
   weewx:
     image: 'bradsjm/weewx:3.6.2'
@@ -24,9 +37,6 @@ services:
     restart: unless-stopped
     environment:
       - 'TZ=America/Chicago'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
 
   hs3:
     image: 'bradsjm/homeseer3:latest'
@@ -35,9 +45,6 @@ services:
     restart: unless-stopped
     volumes:
       - 'hs3-config:/data'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
 
   vrs:
     image: 'bradsjm/virtualradarserver:preview'
@@ -46,6 +53,3 @@ services:
     restart: unless-stopped
     volumes:
       - 'vrs-config:/config'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
