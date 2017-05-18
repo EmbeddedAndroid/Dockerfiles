@@ -10,6 +10,7 @@ services:
     ports:
       - '2947:2947'
     command: '-D2 /dev/ttyAMA0'
+    tmpfs: '/run'
     network_mode: bridge
     restart: unless-stopped
 
@@ -24,6 +25,7 @@ services:
     ports:
       - '123:123/udp'
     ipc: 'container:gps'
+    tmpfs: '/run'
     cap_add:
       - SYS_TIME
     network_mode: bridge
@@ -39,7 +41,7 @@ services:
       - '30001-30005:30001-30005'
       - '30104:30104'
     network_mode: bridge
-    command: '--quiet --net --lat 32.79391 --lon -96.80642'
+    command: '--device 00001000 --quiet --net --gain -10 --lat 32.79391 --lon -96.80642'
     restart: unless-stopped
 
   piaware:
@@ -50,6 +52,7 @@ services:
     ports:
       - '30105:30105'
     network_mode: bridge
+    tmpfs: '/run'
     environment:
       - USER=xxxxxxx
       - PASSWORD=xxxxxxx

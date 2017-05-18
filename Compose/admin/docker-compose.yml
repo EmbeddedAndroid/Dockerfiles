@@ -1,30 +1,68 @@
 version: '3'
 
 volumes:
+  crashplan:
   grafana:
-    driver: vsphere
+  hs3:
+  portainer:
+  influxdb:
+  archive:
+    driver: local
     driver_opts:
-      size: 1Gb
+      type: nfs
+      o: proto=tcp,addr=172.16.100.1,rw
+      device: ":/mnt/Data/Archive"
 
 services:
+  portainer:
+    image: portainer/portainer
+    container_name: "portainer"
+    command: --no-auth
+    network_mode: bridge
+    ports:
+      - '9000:9000'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer:/data
+
   grafana:
     image: 'grafana/grafana:latest'
     container_name: 'grafana'
-    network_mode: host
+    network_mode: bridge
+    ports: 
+      - '3000:3000'
     restart: unless-stopped
+    links: 
+      - influxdb
     volumes:
       - 'grafana:/var/lib/grafana'
     environment:
       - 'GF_SECURITY_ADMIN_PASSWORD=admin'
+      - 'GF_SECURITY_ALLOW_SIGN_UP=false'
+      - 'GF_SECURITY_ALLOW_ORG_CREATE=false'
 
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    network_mode: bridge
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+    volumes:
+      - 'influxdb:/var/lib/influxdb'
+      
   crashplan:
     image: 'gfjardim/crashplan:latest'
     container_name: 'crashplan'
-    network_mode: host
+    network_mode: bridge
+    ports: 
+      - '4242:4242'
+      - '4243:4243'
+      - '4280:4280'
     restart: unless-stopped
     volumes:
-      - 'crashplan-config:/config'
-      - '/mnt:/backup'
+      - 'crashplan:/config'
+      - 'archive:/backup'
     environment:
       - 'TZ=America/Chicago'
       - 'USER_ID=0'
@@ -41,15 +79,13 @@ services:
   hs3:
     image: 'bradsjm/homeseer3:latest'
     container_name: 'hs3'
-    network_mode: host
-    restart: unless-stopped
-    volumes:
-      - 'hs3-config:/data'
-
-  vrs:
-    image: 'bradsjm/virtualradarserver:preview'
-    container_name: 'vrs'
     network_mode: bridge
+    ports:
+      - '80:80'
+      - '8000:8000'
+      - '10401:10401'
+      - '10200:10200'
+      - '10300:10300'
     restart: unless-stopped
     volumes:
-      - 'vrs-config:/config'
+      - 'hs3:/data'
