@@ -50,7 +50,26 @@ services:
     restart: unless-stopped
     volumes:
       - 'influxdb:/var/lib/influxdb'
-      
+
+  telegraf:
+    image: telegraf:latest
+    hostname: photon1
+    container_name: telegraf
+    network_mode: bridge
+    restart: unless-stopped
+    environment:
+      HOST_PROC: /rootfs/proc
+      HOST_SYS: /rootfs/sys
+      HOST_ETC: /rootfs/etc
+    volumes:
+      - '/root/telegraf.conf:/etc/telegraf/telegraf.conf:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/sys:/rootfs/sys:ro'
+      - '/proc:/rootfs/proc:ro'
+      - '/etc:/rootfs/etc:ro'
+    links:
+      - influxdb
+
   crashplan:
     image: 'gfjardim/crashplan:latest'
     container_name: 'crashplan'
@@ -87,5 +106,7 @@ services:
       - '10200:10200'
       - '10300:10300'
     restart: unless-stopped
+    environment:
+      - 'TZ=America/Chicago'
     volumes:
       - 'hs3:/data'

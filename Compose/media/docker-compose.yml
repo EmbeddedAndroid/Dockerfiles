@@ -1,33 +1,18 @@
 version: '3'
 
 volumes:
-  plex:
-    driver: vsphere
-    driver_opts:
-         size: 10Gb
-  transcode:
-    driver: vsphere
-    driver_opts:
-         size: 10Gb
-  plexpy:
-    driver: vsphere
-  nzbget:
-    driver: vsphere
-  sonarr:
-    driver: vsphere
-  radarr:
-    driver: vsphere
   downloads:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=172.16.100.1,rw
-      device: ":/mnt/SSD/Docker/Downloads"
+  sonarr:
+  plex:
+  plexpy:
+  transcode:
+  nzbget:
+  radarr:
   media:
     driver: local
     driver_opts:
       type: nfs
-      o: addr=172.16.100.1,ro
+      o: proto=tcp,addr=172.16.100.1,rw
       device: ":/mnt/Data/Media"
 
 services:
@@ -45,9 +30,6 @@ services:
       - 'PLEX_UID=1000'
       - 'PLEX_GID=1000'
       - 'VERSION=latest'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
 
   plexpy:
     image: 'linuxserver/plexpy:latest'
@@ -59,13 +41,10 @@ services:
       - 'plex:/plex:ro'
     environment:
       - 'TZ=America/Chicago'
-      - 'PLEX_UID=1000'
-      - 'PLEX_GID=1000'
+      - 'PUID=1000'
+      - 'PGID=1000'
     ports:
       - '8181:8181/tcp'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
 
   nzbget:
     image: 'linuxserver/nzbget:latest'
@@ -77,13 +56,10 @@ services:
       - 'downloads:/downloads'
     environment:
       - 'TZ=America/Chicago'
-      - 'PLEX_UID=1000'
-      - 'PLEX_GID=1000'
+      - 'PUID=1000'
+      - 'PGID=1000'
     ports:
       - '6789:6789/tcp'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
 
   sonarr:
     image: 'linuxserver/sonarr:latest'
@@ -94,16 +70,16 @@ services:
       - '/dev/rtc:/dev/rtc:ro'
       - 'sonarr:/config'
       - 'downloads:/downloads'
-      - '/mnt/data/Media/Series:/tv'
+      - 'media:/tv'
     environment:
       - 'TZ=America/Chicago'
-      - 'PLEX_UID=1000'
-      - 'PLEX_GID=1000'
+      - 'PUID=1000'
+      - 'PGID=1000'
     ports:
       - '8989:8989/tcp'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
+    links:
+      - nzbget
+      - transmission
 
   radarr:
     image: 'linuxserver/radarr:latest'
@@ -117,18 +93,19 @@ services:
       - 'media:/movies'
     environment:
       - 'TZ=America/Chicago'
-      - 'PLEX_UID=1000'
-      - 'PLEX_GID=1000'
+      - 'PUID=1000'
+      - 'PGID=1000'
     ports:
       - '7878:7878/tcp'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
+    links:
+      - nzbget
+      - transmission
 
   transmission:
     image: 'haugene/transmission-openvpn:latest'
     container_name: 'transmission'
     network_mode: bridge
+    privileged: true
     restart: unless-stopped
     volumes:
       - '/etc/localtime:/etc/localtime:ro'
@@ -136,15 +113,13 @@ services:
     environment:
       - 'OPENVPN_PROVIDER=PIA'
       - 'OPENVPN_CONFIG=CA North York'
-      - 'OPENVPN_USERNAME='
-      - 'OPENVPN_PASSWORD='
+#     - 'OPENVPN_USERNAME='
+#     - 'OPENVPN_PASSWORD='
       - 'LOCAL_NETWORK=172.16.1.0/24'
       - 'TRANSMISSION_IDLE_SEEDING_LIMIT_ENABLED=true'
       - 'TRANSMISSION_RATIO_LIMIT_ENABLED=true'
       - 'PUID=1000'
       - 'PGID=1000'
+    env_file: ./openvpn.env
     ports:
       - '9091:9091/tcp'
-    deploy:
-      placement:
-        constraints: [node.platform.os == linux]
