@@ -85,3 +85,21 @@ services:
       - dump1090
     command: '--input-type dump1090 --input-connect dump1090:30005 --lat 32.79391 --lon -96.80642 --alt 191 --user bradsjm --server feed.adsbexchange.com:31090 --no-udp --results beast,listen,30205'
     restart: unless-stopped
+
+  telegraf:
+    image: bradsjm/rpi-telegraf:latest
+    hostname: pi
+    container_name: telegraf
+    network_mode: bridge
+    restart: unless-stopped
+    environment:
+      HOST_PROC: /rootfs/proc
+      HOST_SYS: /rootfs/sys
+      HOST_ETC: /rootfs/etc
+    volumes:
+      - '/root/telegraf.conf:/etc/telegraf/telegraf.conf:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '/var/run/utmp:/var/run/utmp:ro'
+      - '/sys:/rootfs/sys:ro'
+      - '/proc:/rootfs/proc:ro'
+      - '/etc:/rootfs/etc:ro'
