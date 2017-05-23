@@ -86,6 +86,18 @@ services:
     command: '--input-type dump1090 --input-connect dump1090:30005 --lat 32.79391 --lon -96.80642 --alt 191 --user bradsjm --server feed.adsbexchange.com:31090 --no-udp --results beast,listen,30205'
     restart: unless-stopped
 
+  pfclient:
+    image: bradsjm/rpi-planefinder
+    build: https://github.com/bradsjm/Dockerfiles.git#:rpi-planefinder
+    container_name: "pfclient"
+    network_mode: bridge
+    ports:
+      - "30053:30053"
+    links:
+     - dump1090
+    command: "--address=dump1090 --port=30005 --sharecode=5923cdbe2d3d0 --lat 32.79391 --lon -96.80642 --data_format=1"
+    restart: unless-stopped
+
   telegraf:
     image: bradsjm/rpi-telegraf:latest
     hostname: pi
