@@ -6,6 +6,7 @@ volumes:
   hs3:
   portainer:
   influxdb:
+  homeassistant:
   archive:
     driver: local
     driver_opts:
@@ -87,6 +88,18 @@ services:
       - 'TZ=America/Chicago'
       - 'USER_ID=0'
       - 'GROUP_ID=0'
+
+  homeassistant:
+    image: 'homeassistant/home-assistant'
+    container_name: 'homeassistant'
+    network_mode: host
+    restart: unless-stopped
+    ports:
+      - '8123:8123'
+    volumes:
+      - 'homeassistant:/config'
+    environment:
+      - 'TZ=America/Chicago'
 
   weewx:
     image: 'bradsjm/weewx:3.6.2'
